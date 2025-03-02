@@ -6,6 +6,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"nuist_rover/nuistnet/isp"
 	"nuist_rover/nuistnet/model"
+	"time"
 )
 
 func (r root) toRoot() Root {
@@ -17,11 +18,16 @@ func (r root) toRoot() Root {
 			Isp:      isp.Parse(acc.Isp),
 		}
 	}
+	testInterval, err := time.ParseDuration(r.TestInterval)
+	if err != nil {
+		testInterval = 0
+	}
 	return Root{
-		ServerUrl: r.ServerUrl,
-		Retry:     r.Retry,
-		Verbose:   r.Verbose,
-		Accounts:  accounts,
+		ServerUrl:    r.ServerUrl,
+		Retry:        r.Retry,
+		TestInterval: testInterval,
+		Verbose:      r.Verbose,
+		Accounts:     accounts,
 	}
 }
 
