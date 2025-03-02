@@ -1,7 +1,6 @@
 package nuistnet
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net"
@@ -10,7 +9,6 @@ import (
 )
 
 type Client struct {
-	Context      context.Context
 	ServerUrl    string
 	NicInterface net.Interface
 	clients      map[net.Addr]http.Client

@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-type NuistNetReq struct {
+type NuistNetSignReq struct {
 	Username    string `json:"username"`
 	Password    string `json:"password"`
 	IfAutoLogin string `json:"ifautologin"`
@@ -14,14 +14,14 @@ type NuistNetReq struct {
 	UsrIpAdd    string `json:"usripadd"`
 }
 
-func GetReqModel(account Account, ispMapping map[isp.Type]int) NuistNetReq {
-	base := GetReqModelBase(account)
+func GetSignReqModel(account Account, ispMapping map[isp.Type]int) NuistNetSignReq {
+	base := GetSignReqModelBase(account)
 	base.Channel = strconv.Itoa(ispMapping[account.Isp])
 	return base
 }
 
-func GetReqModelBase(account Account) NuistNetReq {
-	return NuistNetReq{
+func GetSignReqModelBase(account Account) NuistNetSignReq {
+	return NuistNetSignReq{
 		Username:    account.Username,
 		Password:    account.Password,
 		IfAutoLogin: "0",
