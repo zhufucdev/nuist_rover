@@ -37,7 +37,7 @@ func NewClient(serverUrl string, nicName string) (Client, error) {
 	client := make(map[net.Addr]http.Client)
 	for _, addr := range addresses {
 		localAddr, err := getTcpAddr(addr)
-		if err != nil {
+		if err != nil || localAddr.IP.IsLinkLocalUnicast() || localAddr.IP.IsLinkLocalMulticast() {
 			continue
 		}
 		dialer := net.Dialer{LocalAddr: localAddr}
