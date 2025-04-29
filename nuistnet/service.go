@@ -12,6 +12,7 @@ import (
 	"nuist_rover/nuistnet/helper"
 	"nuist_rover/nuistnet/isp"
 	"nuist_rover/nuistnet/model"
+	"slices"
 	"strconv"
 	"sync"
 )
@@ -20,6 +21,7 @@ func (c Client) GetIspMapping(account model.Account) (map[isp.Type]int, error) {
 	req := model.GetSignReqModelBase(account)
 	req.Channel = "_GET"
 	req.Pagesign = "firstauth"
+	acceptableHttpCode := []int{200, 201, 202}
 
 	for addr, client := range c.clients {
 		req.UsrIpAdd = addr.(*net.TCPAddr).IP.String()
@@ -36,7 +38,7 @@ func (c Client) GetIspMapping(account model.Account) (map[isp.Type]int, error) {
 		jsonDecoder := json.NewDecoder(helper.GetBody(response))
 		var responseBody model.Response[model.ListChannelsContent]
 		err = jsonDecoder.Decode(&responseBody)
-		if err != nil || responseBody.Code != 200 {
+		if err != nil || !slices.Contains(acceptableHttpCode, responseBody.Code) {
 			continue
 		}
 
@@ -159,7 +161,9 @@ func multicastRequestFull[Data any](requestModel func(addr net.Addr, client http
 	}
 
 	wg.Wait()
-	err = model.NewAggregatedNicError(errorMap)
+	if len(errorMap) > 0 {
+		err = model.NewAggregatedNicError(errorMap)
+	}
 	return
 }
 
