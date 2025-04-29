@@ -23,37 +23,74 @@ func (c Client) GetIspMapping(account model.Account) (map[isp.Type]int, error) {
 	req.Pagesign = "firstauth"
 	acceptableHttpCode := []int{200, 201, 202}
 
+	type Result struct {
+		addr    net.Addr
+		mapping map[isp.Type]int
+		err     error
+	}
+	complete := make(chan Result, len(c.clients))
+	ctx, cancelCtx := context.WithCancel(context.Background())
+
 	for addr, client := range c.clients {
-		req.UsrIpAdd = addr.(*net.TCPAddr).IP.String()
-		body, err := json.Marshal(req)
-		if err != nil {
-			return nil, err
-		}
-
-		response, err := client.Post(loginApiV1(c.ServerUrl), "application/json", bytes.NewBuffer(body))
-		if err != nil {
-			continue
-		}
-
-		jsonDecoder := json.NewDecoder(helper.GetBody(response))
-		var responseBody model.Response[model.ListChannelsContent]
-		err = jsonDecoder.Decode(&responseBody)
-		if err != nil || !slices.Contains(acceptableHttpCode, responseBody.Code) {
-			continue
-		}
-
-		mapping := make(map[isp.Type]int, len(responseBody.Data.Channels))
-		for _, channel := range responseBody.Data.Channels {
-			id, err := strconv.Atoi(channel.Id)
+		go func() {
+			req.UsrIpAdd = addr.(*net.TCPAddr).IP.String()
+			body, err := json.Marshal(req)
 			if err != nil {
-				return nil, errors.New(fmt.Sprintf("error parsing channel ID from response (raw: %s): %s", channel.Id, err))
+				complete <- Result{addr, nil, err}
+				return
 			}
-			mapping[isp.Parse(channel.Name)] = id
-		}
-		return mapping, nil
+
+			httpReq, err := http.NewRequestWithContext(ctx, "POST", loginApiV1(c.ServerUrl), bytes.NewBuffer(body))
+			if err != nil {
+				complete <- Result{addr, nil, err}
+				return
+			}
+
+			httpReq.Header["Content-Type"] = []string{"application/json"}
+			response, err := client.Do(httpReq)
+			if err != nil {
+				complete <- Result{addr, nil, err}
+				return
+			}
+
+			jsonDecoder := json.NewDecoder(helper.GetBody(response))
+			var responseBody model.Response[model.ListChannelsContent]
+			err = jsonDecoder.Decode(&responseBody)
+			if err != nil {
+				complete <- Result{addr, nil, err}
+				return
+			}
+			if !slices.Contains(acceptableHttpCode, responseBody.Code) {
+				complete <- Result{addr, nil, fmt.Errorf("inacceptable response code: %d", responseBody.Code)}
+				return
+			}
+
+			mapping := make(map[isp.Type]int, len(responseBody.Data.Channels))
+			for _, channel := range responseBody.Data.Channels {
+				id, err := strconv.Atoi(channel.Id)
+				if err != nil {
+					complete <- Result{addr, nil, fmt.Errorf("error parsing channel ID from response (raw: %s): %s", channel.Id, err)}
+					return
+				}
+				mapping[isp.Parse(channel.Name)] = id
+			}
+			complete <- Result{addr, mapping, nil}
+		}()
 	}
 
-	return nil, errors.New("no usable network interface bounded")
+	errMap := make(map[net.Addr]error)
+	for i := 0; i < len(c.clients); i++ {
+		result := <-complete
+		if result.err != nil {
+			errMap[result.addr] = result.err
+		} else {
+			cancelCtx()
+			return result.mapping, nil
+		}
+	}
+
+	cancelCtx()
+	return nil, model.NewAggregatedNicError(errMap)
 }
 
 func (c Client) Signin(account model.Account) (map[net.Addr]model.SigninContent, error) {
