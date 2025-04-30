@@ -27,6 +27,7 @@ func (r root) toRoot() Root {
 		Retry:        r.Retry,
 		TestInterval: testInterval,
 		Verbose:      r.Verbose,
+		RestartLink:  r.RestartLink,
 		Accounts:     accounts,
 	}
 }

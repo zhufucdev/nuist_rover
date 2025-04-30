@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/alecthomas/kong"
+	"github.com/vishvananda/netlink"
 	"nuist_rover/configuration"
 	"nuist_rover/logger"
 	"nuist_rover/nuistnet"
@@ -62,7 +63,9 @@ func main() {
 		go func() {
 			defer wg.Done()
 			dial(nic, account, *config, log, ctx)
+		}()
 
+		go func() {
 			if args.Daemon {
 				ticker := time.NewTicker(config.TestInterval)
 				for {
@@ -75,6 +78,9 @@ func main() {
 						return
 					}
 				}
+			} else {
+				<-signals
+				cancelCtx()
 			}
 		}()
 	}
@@ -89,7 +95,10 @@ func dial(nic string, account model.Account, config configuration.Root, log logg
 		panic(err)
 	}
 
-	signedIn, err := client.IsOnline()
+	onlineCheckCtx, cancelOnlineCheckCtx := context.WithTimeout(ctx, 10*time.Second)
+	defer cancelOnlineCheckCtx()
+
+	signedIn, err := client.IsOnline(onlineCheckCtx)
 	if err != nil {
 		log.Warning("cannot query dial state: %s", err)
 	} else if signedIn {
@@ -115,7 +124,25 @@ func dial(nic string, account model.Account, config configuration.Root, log logg
 			log.Log("%d retrial(s) remaining", remainingTrails)
 		} else {
 			log.Info("dial succeeded on %s", nic)
-			break
+			return
+		}
+	}
+
+	if config.RestartLink {
+		log.Info("retry expired, interface %s is restarting", nic)
+		lo, err := netlink.LinkByName(nic)
+		if err != nil {
+			log.Error("%s was not found: %s", nic, err)
+			return
+		}
+		err = netlink.LinkSetDown(lo)
+		if err != nil {
+			log.Error("failed to set down %s: %s", nic, err)
+			return
+		}
+		err = netlink.LinkSetUp(lo)
+		if err != nil {
+			log.Error("failed to set up %s: %s", nic, err)
 		}
 	}
 }

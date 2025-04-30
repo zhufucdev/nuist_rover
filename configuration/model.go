@@ -16,6 +16,7 @@ type root struct {
 	Retry        uint
 	TestInterval string
 	Verbose      string
+	RestartLink  bool
 	Accounts     map[string]account
 }
 
@@ -24,5 +25,6 @@ type Root struct {
 	Retry        uint
 	TestInterval time.Duration
 	Verbose      string
+	RestartLink  bool
 	Accounts     map[string]model.Account
 }

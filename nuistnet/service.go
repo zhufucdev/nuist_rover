@@ -111,13 +111,13 @@ func (c Client) SigninWithContext(account model.Account, ctx context.Context) (m
 	}, loginApiV1(c.ServerUrl), c.clients, ctx)
 }
 
-func (c Client) IsOnline() (bool, error) {
+func (c Client) IsOnline(ctx context.Context) (bool, error) {
 	data, err := multicastRequestFast[model.StateQueryContent](func(addr net.Addr, client http.Client) any {
 		return model.NusitNetOnlineStateQueryReq{
 			GetUserOnlineState: "on_or_off",
 			UsrIpAdd:           addr.(*net.TCPAddr).IP.String(),
 		}
-	}, preloginApiV1(c.ServerUrl), c.clients, context.TODO())
+	}, preloginApiV1(c.ServerUrl), c.clients, ctx)
 	if data != nil {
 		switch data.OnlineState {
 		case "on":

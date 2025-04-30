@@ -36,5 +36,5 @@ func (a *AggregatedNicError) Error() string {
 		buffer[index] = fmt.Sprintf("%s on %s", err, addr.String())
 		index++
 	}
-	return strings.Join(buffer, "; ")
+	return strings.Join(buffer, "\n")
 }
