@@ -51,44 +51,44 @@ func main() {
 		log.Info("running in daemon mode while test interval has empty value, defaulting to %s", config.TestInterval.String())
 	}
 
+	log.Log("loaded %d account(s)", len(config.Accounts))
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	signals := make(chan os.Signal)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+
+	if args.Daemon {
+		dial_all_parallel(ctx, *config, log)
+
+		ticker := time.NewTicker(config.TestInterval)
+		for {
+			select {
+			case <-ticker.C:
+				go dial_all_parallel(ctx, *config, log)
+
+			case sig := <-signals:
+				cancelCtx()
+				log.Log("%s", sig.String())
+				return
+			}
+		}
+	} else {
+		dial_all_parallel(ctx, *config, log)
+	}
+}
+
+func dial_all_parallel(ctx context.Context, config configuration.Root, log logger.Logger) {
 	var wg sync.WaitGroup
 	wg.Add(len(config.Accounts))
-
-	log.Log("loaded %d account(s)", len(config.Accounts))
 	for nic, account := range config.Accounts {
-		signals := make(chan os.Signal)
-		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
-		ctx, cancelCtx := context.WithCancel(context.Background())
-
 		go func() {
 			defer wg.Done()
-			dial(nic, account, *config, log, ctx)
-		}()
-
-		go func() {
-			if args.Daemon {
-				ticker := time.NewTicker(config.TestInterval)
-				for {
-					select {
-					case <-ticker.C:
-						dial(nic, account, *config, log, ctx)
-					case <-signals:
-						cancelCtx()
-						log.Log("daemon canceled for %s", nic)
-						return
-					}
-				}
-			} else {
-				<-signals
-				cancelCtx()
-			}
+			dial(ctx, nic, account, config, log)
 		}()
 	}
-
 	wg.Wait()
 }
 
-func dial(nic string, account model.Account, config configuration.Root, log logger.Logger, ctx context.Context) {
+func dial(ctx context.Context, nic string, account model.Account, config configuration.Root, log logger.Logger) {
 	remainingTrails := config.Retry + 1
 	client, err := nuistnet.NewClient(config.ServerUrl, nic)
 	if err != nil {
