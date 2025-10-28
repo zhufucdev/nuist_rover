@@ -27,7 +27,7 @@ func NewClient(serverUrl string, nicName string) (Client, error) {
 		}
 	}
 	if targetNic == nil {
-		return Client{}, errors.New(fmt.Sprintf("network interface named %s was not found", nicName))
+		return Client{}, fmt.Errorf("network interface named %s was not found", nicName)
 	}
 
 	addresses, err := targetNic.Addrs()
@@ -37,7 +37,7 @@ func NewClient(serverUrl string, nicName string) (Client, error) {
 	client := make(map[net.Addr]http.Client)
 	for _, addr := range addresses {
 		localAddr, err := getTcpAddr(addr)
-		if err != nil || localAddr.IP.IsLinkLocalUnicast() || localAddr.IP.IsLinkLocalMulticast() {
+		if err != nil || localAddr.IP.IsLinkLocalUnicast() || localAddr.IP.IsLinkLocalMulticast() || localAddr.IP.To4() == nil {
 			continue
 		}
 		dialer := net.Dialer{LocalAddr: localAddr}
@@ -52,9 +52,9 @@ func NewClient(serverUrl string, nicName string) (Client, error) {
 }
 
 func getTcpAddr(addr net.Addr) (*net.TCPAddr, error) {
-	switch addr.(type) {
+	switch addr := addr.(type) {
 	case *net.IPNet:
-		ipAddr := addr.(*net.IPNet)
+		ipAddr := addr
 		ip4 := ipAddr.IP.To4()
 		var netipAddr netip.Addr
 		if ip4 != nil {

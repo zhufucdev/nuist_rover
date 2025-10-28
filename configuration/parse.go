@@ -1,11 +1,11 @@
 package configuration
 
 import (
-	"errors"
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"nuist_rover/nuistnet/isp"
 	"nuist_rover/nuistnet/model"
+	"strings"
 	"time"
 )
 
@@ -22,8 +22,12 @@ func (r root) toRoot() Root {
 	if err != nil {
 		testInterval = 0
 	}
+	serverUrl := r.ServerUrl
+	if !strings.HasPrefix(serverUrl, "http://") && !strings.HasPrefix(serverUrl, "https://") {
+		serverUrl = "http://" + serverUrl
+	}
 	return Root{
-		ServerUrl:    r.ServerUrl,
+		ServerUrl:    serverUrl,
 		Retry:        r.Retry,
 		TestInterval: testInterval,
 		Verbose:      r.Verbose,
@@ -36,7 +40,7 @@ func Parse(filename string) (*Root, error) {
 	var config root
 	_, err := toml.DecodeFile(filename, &config)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("error reading configuration file: %s", err))
+		return nil, fmt.Errorf("error reading configuration file: %s", err)
 	}
 
 	rootConfig := config.toRoot()

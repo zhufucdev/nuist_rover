@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -34,7 +33,7 @@ func (c Client) GetIspMapping(account model.Account) (map[isp.Type]int, error) {
 	for addr, client := range c.clients {
 		go func() {
 			req.UsrIpAdd = addr.(*net.TCPAddr).IP.String()
-			body, err := json.Marshal(req)
+			body, err := json.Marshal(req.Encrypt())
 			if err != nil {
 				complete <- Result{addr, nil, err}
 				return
@@ -107,7 +106,7 @@ func (c Client) SigninWithContext(account model.Account, ctx context.Context) (m
 		req := model.GetSignReqModel(account, ispMapping)
 		req.Pagesign = "secondauth"
 		req.UsrIpAdd = addr.(*net.TCPAddr).IP.String()
-		return req
+		return req.Encrypt()
 	}, loginApiV1(c.ServerUrl), c.clients, ctx)
 }
 
@@ -116,7 +115,7 @@ func (c Client) IsOnline(ctx context.Context) (bool, error) {
 		return model.NusitNetOnlineStateQueryReq{
 			GetUserOnlineState: "on_or_off",
 			UsrIpAdd:           addr.(*net.TCPAddr).IP.String(),
-		}
+		}.Encrypt()
 	}, preloginApiV1(c.ServerUrl), c.clients, ctx)
 	if data != nil {
 		switch data.OnlineState {
@@ -152,7 +151,7 @@ func jsonPost[Data any](client http.Client, requestModel any, httpEndpoint strin
 
 	response, err := client.Do(request)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("could not connect to authentication server: %s", err))
+		return nil, fmt.Errorf("could not connect to authentication server: %s", err)
 	}
 	buffer, err := io.ReadAll(helper.GetBody(response))
 	if err != nil {
@@ -165,7 +164,7 @@ func jsonPost[Data any](client http.Client, requestModel any, httpEndpoint strin
 	}
 
 	if responseBodyBase.Code != 200 {
-		return nil, errors.New(fmt.Sprintf("failure response code %d from authenication server", responseBodyBase.Code))
+		return nil, fmt.Errorf("failure response code %d from authenication server", responseBodyBase.Code)
 	}
 
 	var responseBody model.Response[Data]

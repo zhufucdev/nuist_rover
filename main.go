@@ -53,7 +53,7 @@ func main() {
 
 	log.Log("loaded %d account(s)", len(config.Accounts))
 	ctx, cancelCtx := context.WithCancel(context.Background())
-	signals := make(chan os.Signal)
+	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 
 	if args.Daemon {
@@ -72,7 +72,18 @@ func main() {
 			}
 		}
 	} else {
-		dial_all_parallel(ctx, *config, log)
+		done := make(chan struct{})
+		go func() {
+			dial_all_parallel(ctx, *config, log)
+			close(done)
+		}()
+		select {
+		case <-done:
+		case sig := <-signals:
+			cancelCtx()
+			log.Log("%s", sig.String())
+			<-done
+		}
 	}
 }
 
