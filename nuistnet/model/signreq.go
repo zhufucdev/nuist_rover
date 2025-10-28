@@ -1,6 +1,7 @@
 package model
 
 import (
+	"nuist_rover/nuistnet/encryption"
 	"nuist_rover/nuistnet/isp"
 	"strconv"
 )
@@ -25,5 +26,26 @@ func GetSignReqModelBase(account Account) NuistNetSignReq {
 		Username:    account.Username,
 		Password:    account.Password,
 		IfAutoLogin: "0",
+	}
+}
+
+func (req NuistNetSignReq) Encrypt() NuistNetSignReq {
+	encUsername, _ := encryption.Encrypt(encryption.ENCRYPTION_KEY, req.Username)
+
+	encKey := encryption.GenerateEncryptionKey(req.Username)
+
+	encPassword, _ := encryption.Encrypt(encKey, req.Password)
+	encIfAutoLogin, _ := encryption.Encrypt(encKey, req.IfAutoLogin)
+	encChannel, _ := encryption.Encrypt(encKey, req.Channel)
+	encPagesign, _ := encryption.Encrypt(encKey, req.Pagesign)
+	encUsrIpAdd, _ := encryption.Encrypt(encKey, req.UsrIpAdd)
+
+	return NuistNetSignReq{
+		Username:    encUsername,
+		Password:    encPassword,
+		IfAutoLogin: encIfAutoLogin,
+		Channel:     encChannel,
+		Pagesign:    encPagesign,
+		UsrIpAdd:    encUsrIpAdd,
 	}
 }

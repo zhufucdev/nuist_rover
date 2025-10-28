@@ -11,7 +11,7 @@ type AggregatedNicError struct {
 }
 
 func NewAggregatedNicError(errorMap map[net.Addr]error) *AggregatedNicError {
-	if len(errorMap) < 0 {
+	if len(errorMap) <= 0 {
 		return nil
 	}
 	return &AggregatedNicError{errorMap}
