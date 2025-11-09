@@ -39,6 +39,7 @@ func (r root) toRoot() Root {
 		RestartLink:           r.RestartLink,
 		CheckOnlineViaPortal:  r.CheckOnlineViaPortal,
 		OnlineCheck: OnlineCheck{
+			Enabled:   r.OnlineCheck.Enabled,
 			Method:    r.OnlineCheck.Method,
 			Host:      r.OnlineCheck.Host,
 			Count:     r.OnlineCheck.Count,

@@ -12,6 +12,7 @@ type account struct {
 }
 
 type onlineCheck struct {
+	Enabled   bool
 	Method    string
 	Host      string
 	Count     int
@@ -19,6 +20,7 @@ type onlineCheck struct {
 }
 
 type OnlineCheck struct {
+	Enabled   bool
 	Method    string
 	Host      string
 	Count     int
