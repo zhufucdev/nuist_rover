@@ -3,11 +3,14 @@ package logger
 import (
 	"fmt"
 	"os"
+	"time"
 )
 
 func (l Logger) Println(level LogLevel, format string, args ...any) {
 	if l.Level <= level {
-		fmt.Printf("["+level.Name()+"] "+format+"\n", args...)
+		timestamp := time.Now().Format("2006-01-02 15:04:05")
+		fmt.Printf("[%s] [%s] ", timestamp, level.Name())
+		fmt.Printf(format+"\n", args...)
 	}
 }
 
