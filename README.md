@@ -27,7 +27,7 @@ retryinterval = "30s"
 
 [onlinecheck]
 enabled = true      # enable online check
-method = "portal"   # or "ping"
+method = "portal"   # or "ping". Note that "ping" method requires root privileges, needed to send raw packets.
 host = "1.2.4.8"    # for ping method
 count = 4           # number of pings
 threshold = 0.25    # success rate threshold (0.25 = 25%)
