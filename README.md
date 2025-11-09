@@ -21,6 +21,9 @@ Format is as follows.
 ```toml
 serverurl = "<your server>"
 verbose = "<one of 'log', 'info', 'exception', 'error'>"
+retry = 3
+retryinterval = "30s"
+checkonlineviaportal = false
 
 [accounts.wan]
 username = "<your account>"

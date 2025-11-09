@@ -22,17 +22,23 @@ func (r root) toRoot() Root {
 	if err != nil {
 		testInterval = 0
 	}
+	retryInterval, err := time.ParseDuration(r.RetryInterval)
+	if err != nil {
+		retryInterval = 0
+	}
 	serverUrl := r.ServerUrl
 	if !strings.HasPrefix(serverUrl, "http://") && !strings.HasPrefix(serverUrl, "https://") {
 		serverUrl = "http://" + serverUrl
 	}
 	return Root{
-		ServerUrl:    serverUrl,
-		Retry:        r.Retry,
-		TestInterval: testInterval,
-		Verbose:      r.Verbose,
-		RestartLink:  r.RestartLink,
-		Accounts:     accounts,
+		ServerUrl:     serverUrl,
+		Retry:         r.Retry,
+		RetryInterval: retryInterval,
+		TestInterval:  testInterval,
+		Verbose:       r.Verbose,
+		RestartLink:   r.RestartLink,
+		CheckOnlineViaPortal: r.CheckOnlineViaPortal,
+		Accounts:      accounts,
 	}
 }
 
