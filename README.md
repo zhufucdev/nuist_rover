@@ -22,13 +22,14 @@ Format is as follows.
 serverurl = "<your server>"
 verbose = "<one of 'log', 'info', 'exception', 'error'>"
 retry = 3
+testinterval = "5m"
 retryinterval = "30s"
-checkonlineviaportal = false
 
 [onlinecheck]
-method = "portal"  # or "ping"
-host = "1.2.4.8"   # for ping method
-count = 4          # number of pings
+enabled = true      # enable online check
+method = "portal"   # or "ping"
+host = "1.2.4.8"    # for ping method
+count = 4           # number of pings
 threshold = 0.25    # success rate threshold (0.25 = 25%)
 
 [accounts.wan]
