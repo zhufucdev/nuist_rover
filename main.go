@@ -51,6 +51,11 @@ func main() {
 		log.Info("running in daemon mode while test interval has empty value, defaulting to %s", config.TestInterval.String())
 	}
 
+	if config.RetryInterval <= 0 {
+		config.RetryInterval = 30 * time.Second
+		log.Info("retry interval has empty value, defaulting to %s", config.RetryInterval.String())
+	}
+
 	log.Log("loaded %d account(s)", len(config.Accounts))
 	ctx, cancelCtx := context.WithCancel(context.Background())
 	signals := make(chan os.Signal, 1)
@@ -106,15 +111,17 @@ func dial(ctx context.Context, nic string, account model.Account, config configu
 		panic(err)
 	}
 
-	onlineCheckCtx, cancelOnlineCheckCtx := context.WithTimeout(ctx, 10*time.Second)
-	defer cancelOnlineCheckCtx()
+	if config.CheckOnlineViaPortal {
+		onlineCheckCtx, cancelOnlineCheckCtx := context.WithTimeout(ctx, 10*time.Second)
+		defer cancelOnlineCheckCtx()
 
-	signedIn, err := client.IsOnline(onlineCheckCtx)
-	if err != nil {
-		log.Warning("cannot query dial state: %s", err)
-	} else if signedIn {
-		log.Info("already dialed on %s", nic)
-		return
+		signedIn, err := client.IsOnline(onlineCheckCtx)
+		if err != nil {
+			log.Warning("cannot query dial state: %s", err)
+		} else if signedIn {
+			log.Info("already dialed on %s", nic)
+			return
+		}
 	}
 
 	for remainingTrails > 0 {
@@ -133,6 +140,10 @@ func dial(ctx context.Context, nic string, account model.Account, config configu
 		if !successful {
 			remainingTrails -= 1
 			log.Log("%d retrial(s) remaining", remainingTrails)
+			if remainingTrails > 0 {
+				log.Log("waiting %s before next retry", config.RetryInterval.String())
+				time.Sleep(config.RetryInterval)
+			}
 		} else {
 			log.Info("dial succeeded on %s", nic)
 			return
