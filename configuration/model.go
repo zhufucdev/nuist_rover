@@ -11,14 +11,6 @@ type account struct {
 	Isp      string
 }
 
-type onlineCheck struct {
-	Enabled   bool
-	Method    string
-	Host      string
-	Count     int
-	Threshold float64
-}
-
 type OnlineCheck struct {
 	Enabled   bool
 	Method    string
@@ -34,7 +26,7 @@ type root struct {
 	TestInterval          string
 	Verbose               string
 	RestartLink           bool
-	OnlineCheck           onlineCheck
+	OnlineCheck           OnlineCheck
 	Accounts              map[string]account
 }
 

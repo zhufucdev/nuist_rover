@@ -31,20 +31,14 @@ func (r root) toRoot() Root {
 		serverUrl = "http://" + serverUrl
 	}
 	return Root{
-		ServerUrl:             serverUrl,
-		Retry:                 r.Retry,
-		RetryInterval:         retryInterval,
-		TestInterval:          testInterval,
-		Verbose:               r.Verbose,
-		RestartLink:           r.RestartLink,
-		OnlineCheck: OnlineCheck{
-			Enabled:   r.OnlineCheck.Enabled,
-			Method:    r.OnlineCheck.Method,
-			Host:      r.OnlineCheck.Host,
-			Count:     r.OnlineCheck.Count,
-			Threshold: r.OnlineCheck.Threshold,
-		},
-		Accounts: accounts,
+		ServerUrl:     serverUrl,
+		Retry:         r.Retry,
+		RetryInterval: retryInterval,
+		TestInterval:  testInterval,
+		Verbose:       r.Verbose,
+		RestartLink:   r.RestartLink,
+		OnlineCheck:   r.OnlineCheck,
+		Accounts:      accounts,
 	}
 }
 
