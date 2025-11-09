@@ -34,7 +34,6 @@ type root struct {
 	TestInterval          string
 	Verbose               string
 	RestartLink           bool
-	CheckOnlineViaPortal  bool
 	OnlineCheck           onlineCheck
 	Accounts              map[string]account
 }
@@ -46,7 +45,6 @@ type Root struct {
 	TestInterval          time.Duration
 	Verbose               string
 	RestartLink           bool
-	CheckOnlineViaPortal  bool
 	OnlineCheck           OnlineCheck
 	Accounts              map[string]model.Account
 }
