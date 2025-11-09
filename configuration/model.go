@@ -11,6 +11,20 @@ type account struct {
 	Isp      string
 }
 
+type onlineCheck struct {
+	Method    string
+	Host      string
+	Count     int
+	Threshold float64
+}
+
+type OnlineCheck struct {
+	Method    string
+	Host      string
+	Count     int
+	Threshold float64
+}
+
 type root struct {
 	ServerUrl             string
 	Retry                 uint
@@ -19,16 +33,18 @@ type root struct {
 	Verbose               string
 	RestartLink           bool
 	CheckOnlineViaPortal  bool
+	OnlineCheck           onlineCheck
 	Accounts              map[string]account
 }
 
 type Root struct {
-	ServerUrl     string
-	Retry         uint
-	RetryInterval time.Duration
-	TestInterval  time.Duration
-	Verbose       string
-	RestartLink   bool
-	CheckOnlineViaPortal bool
-	Accounts      map[string]model.Account
+	ServerUrl             string
+	Retry                 uint
+	RetryInterval         time.Duration
+	TestInterval          time.Duration
+	Verbose               string
+	RestartLink           bool
+	CheckOnlineViaPortal  bool
+	OnlineCheck           OnlineCheck
+	Accounts              map[string]model.Account
 }

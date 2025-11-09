@@ -25,6 +25,12 @@ retry = 3
 retryinterval = "30s"
 checkonlineviaportal = false
 
+[onlinecheck]
+method = "portal"  # or "ping"
+host = "1.2.4.8"   # for ping method
+count = 4          # number of pings
+threshold = 0.25    # success rate threshold (0.25 = 25%)
+
 [accounts.wan]
 username = "<your account>"
 password = "<your password>"
