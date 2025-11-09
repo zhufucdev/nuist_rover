@@ -37,7 +37,6 @@ func (r root) toRoot() Root {
 		TestInterval:          testInterval,
 		Verbose:               r.Verbose,
 		RestartLink:           r.RestartLink,
-		CheckOnlineViaPortal:  r.CheckOnlineViaPortal,
 		OnlineCheck: OnlineCheck{
 			Enabled:   r.OnlineCheck.Enabled,
 			Method:    r.OnlineCheck.Method,
