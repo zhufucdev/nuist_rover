@@ -25,5 +25,6 @@ jobs:
       run: GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -ldflags "-w -s" -v ./...
 
     - uses: actions/upload-artifact@v4
-      name: nuist_rover
-      path: ./nuist_rover
+      with:
+        name: nuist_rover
+        path: ./nuist_rover
