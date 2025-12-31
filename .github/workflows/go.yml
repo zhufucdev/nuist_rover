@@ -5,26 +5,26 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.24'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.24"
 
-    - name: Build
-      run: GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -ldflags "-w -s" -v ./... | awk '{print "artifact="$1}' >> $GITHUB_OUTPUT
+      - name: Build
+        id: builder
+        run: GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -ldflags "-w -s" -v ./... | awk '{print "artifact="$1}' >> $GITHUB_OUTPUT
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: nuist_rover
-        path: ${{ steps.runner.outputs.artifact }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nuist_rover
+          path: ${{ steps.builder.outputs.artifact }}
