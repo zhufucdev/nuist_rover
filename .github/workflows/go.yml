@@ -23,3 +23,7 @@ jobs:
 
     - name: Build
       run: GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -ldflags "-w -s" -v ./...
+
+    - name: Upload archive
+      use: actions/upload-artifact@v4
+      name: ./nuist_rover
