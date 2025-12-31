@@ -21,10 +21,9 @@ jobs:
           go-version: "1.24"
 
       - name: Build
-        id: builder
-        run: GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -ldflags "-w -s" -v ./... | awk '{print "artifact="$1}' >> $GITHUB_OUTPUT
+        run: GOOS=linux GOARCH=mipsle GOMIPS=softfloat go build -ldflags "-w -s" -v ./...
 
       - uses: actions/upload-artifact@v4
         with:
           name: nuist_rover
-          path: ${{ steps.builder.outputs.artifact }}
+          path: nuist_rover
